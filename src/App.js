@@ -9,15 +9,26 @@ const API_BASE_URL = 'https://api.openweathermap.org/data/2.5/weather';
 
 function App() {
   const [weatherData, setWeatherData] = useState(null);
-
+  const [showError, setShowError] = useState(false)
   const fetchWeatherData = async (location) => {
     try {
+      setShowError(false)
+      console.log("location", location)
       const response = await axios.get(`${API_BASE_URL}?q=${location}&appid=${API_KEY}&units=metric`);
+      console.log("Response", response)
+
       const data = response.data;
       data.air_quality = 'Good';
       setWeatherData(data);
+
     } catch (error) {
-      console.error('Error fetching weather data:', error);
+      console.error('Error fetching weather data:', error.response.status);
+
+      if (Number(error.response.status) === Number(404)) {
+
+        setShowError(true)
+        return
+      }
     }
   };
 
@@ -26,7 +37,14 @@ function App() {
     <div className="app">
       <h1 className='title'>Weather App</h1>
       <SearchBar onSearch={fetchWeatherData} />
-      <WeatherCard weatherData={weatherData} />
+      {showError ? <>
+        <div className="weather-card">
+          <h3 style={{ textAlign: "center" }}>Oops !! No City Found..</h3>
+        </div>
+      </> :
+
+        <WeatherCard weatherData={weatherData} />
+      }
     </div>
   );
 }
